@@ -93,7 +93,7 @@ Offline pipeline для каждой контрольной точки испо�
 
 ## Документация
 
-- инструкция для жюри: [`JURY_GUIDE.md`](./JURY_GUIDE.md)
+- инструкция для жюри: [`GUIDE.md`](./GUIDE.md)
 - Sphinx-документация: [`docs/README.md`](./docs/README.md)
 - архитектура: [`docs/architecture.rst`](./docs/architecture.rst)
 - Backend: [`docs/backend.rst`](./docs/backend.rst)

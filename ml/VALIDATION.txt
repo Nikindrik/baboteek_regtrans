@@ -1,0 +1,22 @@
+Mosgortrans ML Go + ONNX + gRPC validation record
+Updated: 2026-09-27
+
+Current source contract:
+- transport: protobuf + gRPC only (no ML WebSocket)
+- frozen production feature count: 96
+- strict Predict horizon guard: >600 s and <=900 s
+- invalid GPS is converted to missing feature values instead of poisoning geometry
+- duplicate event: accepted as duplicate_event
+- out-of-order event: rejected as stale_event
+- model manifest validates exact feature order and model files / SHA-256 when supplied
+
+Previously confirmed on the user's WSL before this final packaging pass:
+- go test ./...: PASS
+- go vet ./...: PASS
+- native Go + ONNX Runtime inference: PASS
+- synthetic Predict latency: ~0.536 ms
+- live Health counters: telemetryEvents/predictions increased with Backend traffic
+
+This review environment could not re-run Go dependency downloads because outbound network access is disabled. The current uploaded bundle also omitted the ONNX model files, so native inference cannot be reproduced here until model_manifest.json and both ONNX files are restored.
+
+The prebuilt binary from the uploaded archive was intentionally removed from the fixed bundle: its CLI defaults did not match the uploaded source, so it was stale and unsafe to ship as the final executable. Rebuild from the current source or via Docker.

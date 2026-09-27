@@ -1,0 +1,54 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Node / frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# Go binaries
+bin/
+ml/bin/
+*.exe
+*.test
+*.out
+
+# Runtime outputs
+output/
+logs/
+*.log
+
+# Organizer emulator / large archives
+*.tar
+*.tar.gz
+*.zip
+*.rar
+
+# Local artifacts
+artifacts/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Secrets / local config
+.env
+
+# Temporary / backup
+*.orig
+*.bak
+*.tmp
+*~
+
+*:Zone.Identifier

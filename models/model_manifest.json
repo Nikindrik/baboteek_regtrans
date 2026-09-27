@@ -1,0 +1,176 @@
+{
+  "format_version": 1,
+  "feature_count": 96,
+  "features": [
+    "cur_dev_s",
+    "horizon_s",
+    "last_speed_kmh",
+    "cur_dev_lag6",
+    "target_order_in_vehicle",
+    "cur_dev_lag12",
+    "hour_cos",
+    "heading_to_target_sin",
+    "last_lat",
+    "heading_to_target_cos",
+    "hour_sin",
+    "cur_dev_delta2",
+    "cur_dev_accel",
+    "cur_dev_rollstd12",
+    "last_heading_sin",
+    "cur_dev_lag3",
+    "target_lat_sched",
+    "last_lon",
+    "seconds_since_last_fact",
+    "cur_dev_rollstd6",
+    "last_heading_cos",
+    "straightline_to_target_m",
+    "target_lon_sched",
+    "speed_slope_kmh_per_min_15m",
+    "speed_slope_kmh_per_min_1m",
+    "required_speed_to_target_kmh",
+    "cur_dev_rollstd3",
+    "points_in_block",
+    "telemetry_staleness_s",
+    "last_known_fact_delay_s",
+    "cur_dev_delta1",
+    "location_valid_share_15m",
+    "cur_dev_lag2",
+    "cur_dev_rollstd2",
+    "speed_slope_kmh_per_min_5m",
+    "speed_slope_kmh_per_min_10m",
+    "cur_dev_rollmean12",
+    "last_heading",
+    "speed_slope_kmh_per_min_3m",
+    "location_valid_share_10m",
+    "abs_cur_dev_s",
+    "speed_trend_1m_vs_5m",
+    "stopped_share_10m",
+    "speed_margin_to_required_kmh",
+    "cur_dev_rollmin12",
+    "displacement_15m_m",
+    "displacement_10m_m",
+    "telemetry_obs_15m",
+    "stopped_share_15m",
+    "displacement_5m_m",
+    "minute",
+    "scheduled_prev_gap_s",
+    "cur_dev_rollmax12",
+    "location_valid_share_5m",
+    "telemetry_obs_10m",
+    "cur_dev_rollmin6",
+    "cur_dev_lag1",
+    "location_valid_share_3m",
+    "stopped_share_5m",
+    "stopped_share_3m",
+    "speed_max_15m",
+    "eta_at_last_speed_s",
+    "path_distance_1m_m",
+    "speed_std_1m",
+    "path_distance_15m_m",
+    "displacement_1m_m",
+    "cur_dev_rollmean6",
+    "speed_std_5m",
+    "speed_std_15m",
+    "cur_dev_rollmax6",
+    "telemetry_obs_5m",
+    "speed_max_10m",
+    "speed_std_3m",
+    "displacement_3m_m",
+    "telemetry_obs_3m",
+    "speed_mean_15m",
+    "cur_dev_per_horizon_min",
+    "speed_max_1m",
+    "speed_mean_1m",
+    "path_distance_5m_m",
+    "cur_dev_rollmin3",
+    "cur_dev_rollmax3",
+    "eta_minus_horizon_s",
+    "path_distance_10m_m",
+    "speed_std_10m",
+    "speed_max_3m",
+    "stopped_share_1m",
+    "path_distance_3m_m",
+    "speed_mean_3m",
+    "location_valid_share_1m",
+    "speed_max_5m",
+    "speed_mean_10m",
+    "cur_dev_rollmin2",
+    "hour",
+    "cur_dev_rollmean2",
+    "speed_mean_5m"
+  ],
+  "models": {
+    "residual": {
+      "file": "lgbm_residual_final_seed42.onnx",
+      "sha256": "d86fda393512dc0ec1a6017a4dddc8572dc85fb37d38e9a56a6c086539b17563",
+      "source_file": "lgbm_residual_final_seed42.txt",
+      "source_sha256": "4e630dc1a3839931a5a0f493e551f42900a223ff36cd55e727bccafc93c3ee0c",
+      "input_name": "features",
+      "output_name": "variable",
+      "io": {
+        "inputs": [
+          {
+            "name": "features",
+            "elem_type": 1,
+            "shape": [
+              null,
+              96
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "variable",
+            "elem_type": 1,
+            "shape": [
+              null,
+              1
+            ]
+          }
+        ]
+      }
+    },
+    "risk": {
+      "file": "lgbm_late_final.onnx",
+      "sha256": "f5f43c2b4e6b8ca2c3fbcf9a1b01f97387000749e1daa3de46739b2811472ef2",
+      "source_file": "lgbm_late_final.txt",
+      "source_sha256": "93538ec2dfbf38616d79623636f65f78f1d8e527a07f853e06feeb4fe544b3bb",
+      "input_name": "features",
+      "output_name": "probabilities",
+      "positive_class_index": 1,
+      "io": {
+        "inputs": [
+          {
+            "name": "features",
+            "elem_type": 1,
+            "shape": [
+              null,
+              96
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "label",
+            "elem_type": 7,
+            "shape": [
+              1
+            ]
+          },
+          {
+            "name": "probabilities",
+            "elem_type": 1,
+            "shape": [
+              null,
+              2
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "parity": {
+    "regression_max_abs_diff": 0.00019481804866927632,
+    "risk_max_abs_diff": 1.250820216500137e-07
+  }
+}

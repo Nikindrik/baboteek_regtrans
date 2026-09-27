@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package mosgortrans.v1;
+
+// Go-only code-generation metadata. Wire contract is unchanged.
+option go_package = "mosgortrans-ml-go/proto;mosgortransv1";
+
+message TelemetryEvent {
+  int64 unit_id = 1;
+  int64 tr_id = 2;
+  int64 event_time_unix_ms = 3;
+  double lat = 4;
+  double lon = 5;
+  double speed_kmh = 6;
+  double heading_deg = 7;
+  bool location_valid = 8;
+}
+
+message ScheduleState {
+  bool valid = 1;
+  double cur_dev_s = 2;
+  double last_known_fact_delay_s = 3;
+  double seconds_since_last_fact = 4;
+  int64 last_stop_id = 5;
+  int32 last_stop_order = 6;
+  double match_confidence = 7;
+}
+
+message TargetPoint {
+  bool valid = 1;
+  int64 stop_id = 2;
+  int64 target_time_unix_ms = 3;
+  int32 order = 4;
+  double lon = 5;
+  double lat = 6;
+  double scheduled_prev_gap_s = 7;
+}
+
+message IngestRequest {
+  TelemetryEvent telemetry = 1;
+  ScheduleState schedule = 2;
+}
+
+message IngestResponse {
+  bool accepted = 1;
+  string status = 2;
+  int64 tr_id = 3;
+}
+
+message IngestSummary {
+  int64 received = 1;
+  int64 accepted = 2;
+  int64 rejected = 3;
+}
+
+message PredictRequest {
+  int64 tr_id = 1;
+  int64 request_time_unix_ms = 2;
+  ScheduleState schedule = 3;
+  TargetPoint target = 4;
+}
+
+message PredictionResponse {
+  string status = 1;
+  int64 tr_id = 2;
+  int64 target_stop_id = 3;
+  int64 target_time_unix_ms = 4;
+  double horizon_s = 5;
+  double current_delay_s = 6;
+  double predicted_delta_s = 7;
+  double predicted_delay_s = 8;
+  double late_probability = 9;
+  string risk_level = 10;
+  string reason = 11;
+  double reason_confidence = 12;
+  double telemetry_staleness_s = 13;
+  double ml_latency_ms = 14;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool ok = 1;
+  string status = 2;
+  string model_version = 3;
+  int64 telemetry_events = 4;
+  int64 predictions = 5;
+}
+
+service MLInference {
+  rpc Ingest(IngestRequest) returns (IngestResponse);
+  rpc IngestStream(stream IngestRequest) returns (IngestSummary);
+  rpc Predict(PredictRequest) returns (PredictionResponse);
+  rpc Health(HealthRequest) returns (HealthResponse);
+}

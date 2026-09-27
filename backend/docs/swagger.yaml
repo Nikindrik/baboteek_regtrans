@@ -1,0 +1,337 @@
+swagger: '2.0'
+info:
+  description: Real-time public transit schedule deviation predictor & fleet telemetry gateway.
+  title: Moscow Transport Delay Prediction API
+  contact:
+    name: Hackathon Team Baboteek
+  version: '1.0'
+host: localhost:8080
+basePath: /
+paths:
+  /api/v1/fleet:
+    get:
+      description: Returns the live state of all vehicles in the network
+      produces:
+      - application/json
+      tags:
+      - fleet
+      summary: Get all vehicles
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/domain.VehicleState'
+  /api/v1/fleet/{unit_id}:
+    get:
+      description: Returns details for a single vehicle including its 10-point breadcrumb track
+      produces:
+      - application/json
+      tags:
+      - fleet
+      summary: Get vehicle by unit_id
+      parameters:
+      - type: integer
+        description: Unit ID
+        name: unit_id
+        in: path
+        required: true
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.VehicleState'
+        '404':
+          description: Not Found
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+  /api/v1/incidents:
+    get:
+      description: Returns the list of detected schedule deviation incidents
+      produces:
+      - application/json
+      tags:
+      - incidents
+      summary: Get active incidents
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/domain.IncidentCard'
+  /healthz:
+    get:
+      description: Returns the service health status
+      produces:
+      - application/json
+      tags:
+      - system
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+  /api/v1/what-if/traffic-light:
+    post:
+      description: Returns a scenario-only upper estimate of the potential delay reduction. Does not mutate live fleet state
+        or the ML prediction.
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - what-if
+      summary: 'What-if: extend green phase'
+      parameters:
+      - description: Traffic-light scenario
+        name: request
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.TrafficLightWhatIfRequest'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.TrafficLightWhatIfResponse'
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        '404':
+          description: Not Found
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        '409':
+          description: Conflict
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+  /api/v1/what-if/reserve:
+    post:
+      description: Estimates potential service-gap reduction if a reserve vehicle can enter the affected segment after dispatch_eta_s.
+        The delayed vehicle prediction is not rewritten.
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - what-if
+      summary: 'What-if: dispatch reserve vehicle'
+      parameters:
+      - description: Reserve vehicle scenario
+        name: request
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ReserveWhatIfRequest'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ReserveWhatIfResponse'
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        '404':
+          description: Not Found
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        '409':
+          description: Conflict
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+definitions:
+  domain.IncidentCard:
+    type: object
+    properties:
+      current_delay_s:
+        type: number
+      detected_at:
+        type: string
+      predicted_delay_s:
+        type: number
+      reason:
+        type: string
+      risk_level:
+        type: string
+      target_stop_id:
+        type: integer
+      target_time_begin:
+        type: string
+      tr_id:
+        type: integer
+      unit_id:
+        type: integer
+  domain.TelemetryPoint:
+    type: object
+    properties:
+      event_time:
+        type: string
+      heading:
+        type: number
+      lat:
+        type: number
+      lon:
+        type: number
+      speed:
+        type: number
+      unit_id:
+        type: integer
+      valid:
+        type: boolean
+  domain.VehicleState:
+    type: object
+    properties:
+      current_delay_s:
+        type: number
+      dwell_time_s:
+        type: number
+      forecast_eligible:
+        description: Whether schedule data exists for this tr_id
+        type: boolean
+      is_online:
+        type: boolean
+      last_point:
+        description: Кинематика и навигация
+        allOf:
+        - $ref: '#/definitions/domain.TelemetryPoint'
+      late_probability:
+        type: number
+      prediction_valid:
+        description: Есть ли актуальный прогноз для текущей цели в строгом горизонте 10-15 минут
+        type: boolean
+      prediction_source:
+        description: ml, fallback or empty when there is no current forecast
+        type: string
+      ml_latency_ms:
+        type: number
+      predicted_delay_s:
+        description: Предсказание ML
+        type: number
+      reason:
+        type: string
+      reason_confidence:
+        type: number
+      risk_level:
+        description: '"green", "yellow", "red"'
+        type: string
+      segment_avg_speed_kmh:
+        type: number
+      target_stop_id:
+        description: Сопоставление с планом
+        type: integer
+      target_time_begin:
+        type: string
+      tr_id:
+        type: integer
+      track:
+        description: 10 последних точек для карты
+        type: array
+        items:
+          $ref: '#/definitions/domain.TelemetryPoint'
+      unit_id:
+        type: integer
+      updated_at:
+        type: string
+  domain.TrafficLightWhatIfRequest:
+    type: object
+    properties:
+      unit_id:
+        type: integer
+        example: 985940
+      extension_s:
+        type: integer
+        example: 15
+  domain.TrafficLightWhatIfResponse:
+    type: object
+    properties:
+      scenario:
+        type: string
+      unit_id:
+        type: integer
+      tr_id:
+        type: integer
+      target_stop_id:
+        type: integer
+      target_time_begin:
+        type: string
+      extension_s:
+        type: integer
+      baseline_predicted_delay_s:
+        type: number
+      scenario_predicted_delay_s:
+        type: number
+      estimated_delay_reduction_s:
+        type: number
+      baseline_late_probability:
+        type: number
+      baseline_risk_level:
+        type: string
+      live_state_changed:
+        type: boolean
+      generated_at:
+        type: string
+      assumption:
+        type: string
+  domain.ReserveWhatIfRequest:
+    type: object
+    properties:
+      unit_id:
+        type: integer
+        example: 985940
+      dispatch_eta_s:
+        type: integer
+        example: 300
+  domain.ReserveWhatIfResponse:
+    type: object
+    properties:
+      scenario:
+        type: string
+      unit_id:
+        type: integer
+      tr_id:
+        type: integer
+      target_stop_id:
+        type: integer
+      target_time_begin:
+        type: string
+      dispatch_eta_s:
+        type: integer
+      baseline_vehicle_delay_s:
+        type: number
+      vehicle_delay_after_action_s:
+        type: number
+      scenario_service_delay_s:
+        type: number
+      estimated_service_gap_reduction_s:
+        type: number
+      baseline_late_probability:
+        type: number
+      baseline_risk_level:
+        type: string
+      live_state_changed:
+        type: boolean
+      generated_at:
+        type: string
+      assumption:
+        type: string

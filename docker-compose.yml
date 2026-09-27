@@ -1,0 +1,55 @@
+services:
+  ml:
+    build:
+      context: ./ml
+    command: ["--bind", "0.0.0.0:50051", "--model-dir", "/models"]
+    volumes:
+      - ./models:/models:ro
+    ports:
+      - "50051:50051"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      - ml
+    environment:
+      APP_NAME: mosgortrans-predictor
+      APP_ENV: demo
+      LOG_LEVEL: info
+      TIMEZONE: Europe/Moscow
+      # Official emulator generates timestamps "now" while the supplied
+      # schedule_plan is historical. This offset is DEMO-ONLY clock alignment.
+      TIME_SHIFT_HOURS: "${DEMO_TIME_SHIFT_HOURS:--12}"
+      HTTP_PORT: "8080"
+      NDTP_TCP_PORT: "9201"
+      ML_GRPC_HOST: ml
+      ML_GRPC_PORT: "50051"
+      ML_GRPC_TIMEOUT: 1s
+      ML_ENABLE_FALLBACK: "true"
+      SCHEDULE_CSV_PATH: /app/data/schedule_plan.csv
+      UNIT_MAPPING_CSV_PATH: /app/data/unit_tr_mapping.csv
+    ports:
+      - "8080:8080"
+      - "9201:9201"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8088:80"
+    restart: unless-stopped
+
+  # Official organizer-provided image. Load it once with:
+  # docker load -i ndtp-telemetry-emulator.tar
+  emulator:
+    image: ndtp-telemetry-emulator:1.0
+    depends_on:
+      - backend
+    ports:
+      - "18080:18080"
+    restart: unless-stopped
